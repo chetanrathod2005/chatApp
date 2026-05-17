@@ -21,7 +21,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import { BsPinAngleFill } from "react-icons/bs";
-import { profileImageSrc } from "../constant.js";
+import {profileImageSrc,DEFAULT_PROFILE_PHOTO,} from "../constant";
 
 const formatTime = (dateStr) => {
   if (!dateStr) return "";
@@ -455,11 +455,14 @@ return (
           isSelected ? "ring-[#d4d4d8]" : "  ring-[#2f2f2f]"
         }`}
       >
-        <img
-          src={profileImageSrc(user.profilePhoto)}
-          alt=""
-          className="w-full h-full bg-[#f3f4f6] object-cover"
-        />
+      <img
+  src={
+    user?.privacy?.profilePhoto === "nobody"
+      ? DEFAULT_PROFILE_PHOTO
+      : profileImageSrc(user.profilePhoto)
+  }
+  alt=""
+/>
       </div>
 
       {isOnline && user.privacy?.onlineStatus !== "nobody" && (

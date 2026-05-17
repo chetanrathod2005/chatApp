@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedUser } from "../redux/userSlice.js";
-import { profileImageSrc } from "../constant.js";
+import {profileImageSrc,DEFAULT_PROFILE_PHOTO,} from "../constant";
 
 const OtherUser = ({ user }) => {
   const dispatch = useDispatch();
@@ -22,11 +22,14 @@ const OtherUser = ({ user }) => {
       {/* Avatar */}
       <div className="relative">
         <div className="w-12 h-12 rounded-full overflow-hidden bg-[#2a3942] ring-2 ring-purple-400/30">
-          <img
-            src={profileImageSrc(user.profilePhoto)}
-            alt=""
-            className="w-full h-full object-cover"
-          />
+      <img
+  src={
+    user?.privacy?.profilePhoto === "nobody"
+      ? DEFAULT_PROFILE_PHOTO
+      : profileImageSrc(user.profilePhoto)
+  }
+  alt=""
+/>
         </div>
 
         {/* Online dot */}

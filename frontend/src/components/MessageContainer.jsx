@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 import { FiMoreVertical, FiTrash2, FiAlignLeft } from "react-icons/fi";
 import { BsShieldLock, BsTrash } from "react-icons/bs";
 import { getSocket, connectSocket } from "../socket.js";
-import { API_ORIGIN, profileImageSrc } from "../constant.js";
+import {API_ORIGIN,profileImageSrc,DEFAULT_PROFILE_PHOTO,} from "../constant.js";
 import useScreenshotDetection from "../hooks/useScreenshotDetection.js";
 const BASE_URL = API_ORIGIN;
 export const formatLastSeen = (date) => {
@@ -476,11 +476,15 @@ const handlePinMessage = async (msg) => {
         <div className="flex items-center gap-3.5 min-w-0">
           <div className="relative flex-shrink-0">
             <div className="w-11 h-11 rounded-full overflow-hidden bg-[#f3f4f6] ring-1 ring-[#d4d4d8]">
-              <img
-                src={profileImageSrc(selectedUser.profilePhoto)}
-                alt=""
-                className="w-full h-full object-cover"
-              />
+<img
+      src={
+        selectedUser?.privacy?.profilePhoto === "nobody"
+          ? DEFAULT_PROFILE_PHOTO
+          : profileImageSrc(selectedUser.profilePhoto)
+      }
+      alt=""
+      className="w-full h-full object-cover"
+    />
             </div>
 
             {isOnline && canSeeOnlineStatus && (
