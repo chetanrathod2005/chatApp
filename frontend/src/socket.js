@@ -10,7 +10,11 @@ export const connectSocket = (userId) => {
     socket = null;
   }
 
-  socket = io(import.meta.env.VITE_API_URL || "http://localhost:8000", {
+  const SOCKET_URL =
+  import.meta.env.VITE_API_URL?.trim() ||
+  "https://chatapp-7gxz.onrender.com";
+
+socket = io(SOCKET_URL, {
     query: {
       userId: String(userId),
     },
