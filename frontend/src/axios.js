@@ -41,9 +41,13 @@ import { logoutUser } from "./redux/userSlice";
 import { disconnectSocket } from "./socket.js";
 import { PURGE } from "redux-persist";
 
+// const api = axios.create({
+//   // baseURL: (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/api/v1",
+//   baseURL: import.meta.env.VITE_API_URL,
+//   withCredentials: true,
+// });
 const api = axios.create({
-  // baseURL: (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/api/v1",
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "https://chatapp-7gxz.onrender.com/api/v1",
   withCredentials: true,
 });
 console.log("ENV API URL =", import.meta.env.VITE_API_URL);
