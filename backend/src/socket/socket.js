@@ -19,7 +19,7 @@ export const initSocket = (httpServer) => {
     cors: {
       origin: [
         "http://localhost:5173",
-        "https://chat-app-neon-nine-41.vercel.app",
+        "https://chat-app-tawny-nu-63.vercel.app",
       ],
       methods: ["GET", "POST"],
       credentials: true,
