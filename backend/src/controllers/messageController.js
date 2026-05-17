@@ -121,8 +121,10 @@ export const getMessages = async (req, res) => {
     });
 
     const seenMessageIds = seenMessages.map((msg) => msg._id);
-
-    if (seenMessageIds.length > 0) {
+const currentUser = await User.findById(senderId);
+const canSendReadReceipts =
+  currentUser?.privacy?.readReceipts !== false;
+  if (seenMessageIds.length > 0 && canSendReadReceipts) {
       await Message.updateMany(
         { _id: { $in: seenMessageIds } },
         {
@@ -140,25 +142,25 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    await Message.updateMany(
-      {
-        _id: { $in: conversation.messages },
-        senderId: receiverId,
-        receiverId: senderId,
-        seen: false,
-      },
-      {
-        $set: {
-          seen: true,
-          seenAt: new Date(),
-          delivered: true,
-        },
-      },
-    );
+    // await Message.updateMany(
+    //   {
+    //     _id: { $in: conversation.messages },
+    //     senderId: receiverId,
+    //     receiverId: senderId,
+    //     seen: false,
+    //   },
+    //   {
+    //     $set: {
+    //       seen: true,
+    //       seenAt: new Date(),
+    //       delivered: true,
+    //     },
+    //   },
+    // );
 
-    emitToUser(receiverId, "messagesSeen", {
-      seenBy: senderId,
-    });
+    // emitToUser(receiverId, "messagesSeen", {
+    //   seenBy: senderId,
+    // });
 
     // Filter messages deleted for this user
     const messages = conversation.messages.filter(
@@ -201,7 +203,7 @@ export const markMessagesSeen = async (req, res) => {
             delivered: true,
             seenAt: new Date(),
           },
-        },
+        }
       );
 
       emitToUser(otherUserId, "messagesSeen", {
@@ -216,7 +218,10 @@ export const markMessagesSeen = async (req, res) => {
     });
   } catch (error) {
     console.error("markMessagesSeen:", error);
-    return res.status(500).json({ message: "Internal server error" });
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
