@@ -186,6 +186,18 @@ export const markMessagesSeen = async (req, res) => {
     const currentUserId = req.id;
     const otherUserId = req.params.id;
 
+    // Get current user privacy settings
+    const currentUser = await User.findById(currentUserId);
+
+    // If read receipts are OFF
+    if (currentUser?.privacy?.readReceipts === false) {
+      return res.status(200).json({
+        success: true,
+        message: "Read receipts disabled",
+      });
+    }
+
+    // Find unseen messages
     const unseenMessages = await Message.find({
       senderId: otherUserId,
       receiverId: currentUserId,
@@ -194,6 +206,7 @@ export const markMessagesSeen = async (req, res) => {
 
     const messageIds = unseenMessages.map((msg) => msg._id);
 
+    // Mark as seen
     if (messageIds.length > 0) {
       await Message.updateMany(
         { _id: { $in: messageIds } },
@@ -206,6 +219,7 @@ export const markMessagesSeen = async (req, res) => {
         }
       );
 
+      // Emit socket event
       emitToUser(otherUserId, "messagesSeen", {
         seenBy: currentUserId,
         messageIds,
@@ -224,7 +238,6 @@ export const markMessagesSeen = async (req, res) => {
     });
   }
 };
-
 // ─── Edit Message ─────────────────────────────────────────────────────────────
 export const editMessage = async (req, res) => {
   try {
