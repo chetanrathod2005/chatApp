@@ -6,11 +6,15 @@ const messageSlice = createSlice({
     messagesByUser: {},
   },
   reducers: {
-    setMessages: (state, action) => {
-      const { userId, messages } = action.payload || {};
-      if (!userId) return;
-      state.messagesByUser[userId] = messages;
-    },
+ setMessages: (state, action) => {
+  const { userId, messages } = action.payload || {};
+  if (!userId) return;
+
+  state.messagesByUser[userId] = messages.map(msg => ({
+    ...msg,
+    pinnedBy: msg.pinnedBy || []
+  }));
+},
 
     // payload: { msg, chatUserId }
     // chatUserId = the OTHER person's ID (selectedUser._id when sending, senderId when receiving)
@@ -60,9 +64,8 @@ const messageSlice = createSlice({
       const idx = msgs.findIndex((m) => m._id === messageId);
       if (idx !== -1) msgs[idx].reactions = reactions;
     },
-
 togglePinMessage: (state, action) => {
-  const { messageId, chatUserId } = action.payload;
+  const { messageId, chatUserId, userId } = action.payload;
 
   const msgs = state.messagesByUser[chatUserId];
   if (!msgs) return;
@@ -70,7 +73,15 @@ togglePinMessage: (state, action) => {
   const msg = msgs.find((m) => m._id === messageId);
   if (!msg) return;
 
-  msg.isPinned = !msg.isPinned;
+  if (!msg.pinnedBy) msg.pinnedBy = [];
+
+  const exists = msg.pinnedBy.includes(userId);
+
+  if (exists) {
+    msg.pinnedBy = msg.pinnedBy.filter((id) => id !== userId);
+  } else {
+    msg.pinnedBy.push(userId);
+  }
 },
 updatePinnedMessage: (state, action) => {
   const { messageId, pinnedBy, chatUserId } = action.payload;

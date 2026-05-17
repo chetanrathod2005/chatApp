@@ -77,6 +77,7 @@ const MediaContent = ({ msg, baseUrl }) => {
 const MessageBubble = ({
   msg,
   isMe,
+  isPinned,
   onEdit,
   authUser,
   onDeleteForMe,
@@ -268,7 +269,7 @@ const MessageBubble = ({
       : "bg-black text-white rounded-bl-md border-black"
   }`}
 >
-  {msg.isPinned && (
+{isPinned && (
   <div className="flex items-center gap-1 text-yellow-500 text-xs mb-1">
     <BsPinAngleFill size={12} />
     <span>Pinned</span>
@@ -442,13 +443,13 @@ const MessageBubble = ({
                 </button>
               )}
 
-              <button
-              onClick={() => onPin && onPin(msg)}
-              className="flex items-center font-jetbrains gap-3 w-full text-[#111111] hover:bg-[#f4f4f5] px-4 py-3 text-[15px] font-medium transition"
-            >
-              <BsPinAngle size={13} />
-              {msg.isPinned ? "Unpin message" : "Pin message"}
-            </button>
+                    <button
+            onClick={() => onPin && onPin(msg)}
+            className="flex items-center font-jetbrains gap-3 w-full text-[#111111] hover:bg-[#f4f4f5] px-4 py-3 text-[15px] font-medium transition"
+          >
+            <BsPinAngle size={13} />
+            {isPinned ? "Unpin message" : "Pin message"}
+          </button>
 
               {/* <button
                 onClick={() => onSelect && onSelect(msg)}

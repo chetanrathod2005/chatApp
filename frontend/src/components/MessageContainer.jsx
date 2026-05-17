@@ -23,7 +23,6 @@ import { getSocket, connectSocket } from "../socket.js";
 import { API_ORIGIN, profileImageSrc } from "../constant.js";
 import useScreenshotDetection from "../hooks/useScreenshotDetection.js";
 const BASE_URL = API_ORIGIN;
-
 export const formatLastSeen = (date) => {
   if (!date) return "";
 
@@ -80,49 +79,24 @@ const MessageContainer = () => {
   // const [summary, setSummary] = useState(null);
 
     // ---------- Pin ----------
-  const handlePinMessage = async (msg) => {
+const handlePinMessage = async (msg) => {
   try {
-    const res = await api.post(
-      `/message/pin/${msg._id}`,
-      {},
-      { withCredentials: true }
-    );
+    const res = await api.post(`/message/pin/${msg._id}`, {}, {
+      withCredentials: true,
+    });
 
     dispatch(
-      updatePinnedMessage({
+      togglePinMessage({
         messageId: msg._id,
-        pinnedBy: res.data.pinnedBy,
         chatUserId: selectedUser._id,
+        userId: authUser._id,
       })
     );
 
     toast.success(res.data.message);
-//     dispatch({
-//   type: "message/togglePinMessage",
-//   payload: {
-//     messageId: msg._id,
-//     chatUserId: selectedUser._id,
-//   },
-// });
-dispatch(
-  togglePinMessage({
-    messageId: msg._id,
-    chatUserId: selectedUser._id,
-  })
-);
-
   } catch (err) {
-    const serverMsg =
-      err?.response?.data?.error ||
-      err?.message ||
-      "Unknown error";
-
-    toast.error(`Pin failed: ${serverMsg}`);
-
-    console.error(
-      "Pin error:",
-      err?.response?.data || err
-    );
+    toast.error("Pin failed");
+    console.error(err);
   }
 };
 
@@ -609,11 +583,13 @@ dispatch(
                     </span>
                   </div>
                 )}
+              
              
                   <MessageBubble
                     msg={msg}
                     isMe={isMe}
                     authUser={authUser}
+                    isPinned={msg.pinnedBy?.includes(authUser?._id)}
                     baseUrl={BASE_URL}
                     onEdit={handleEdit}
                     onDeleteForMe={handleDeleteForMe}

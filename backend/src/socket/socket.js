@@ -17,83 +17,59 @@ export const emitToUser = (userId, event, data) => {
 export const initSocket = (httpServer) => {
   _io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:5173",
+      origin: [
+        "http://localhost:5173",
+        "https://chat-app-neon-nine-41.vercel.app",
+      ],
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
 
+  // ✅ EVERYTHING MUST BE INSIDE HERE
   _io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId
-  ? String(socket.handshake.query.userId)
-  : "";
+    const userId = socket.handshake.query.userId
+      ? String(socket.handshake.query.userId)
+      : "";
 
-if (userId && userId !== "undefined") {
-  userSocketMap[userId] = socket.id;
+    if (userId && userId !== "undefined") {
+      userSocketMap[userId] = socket.id;
+      socket.join(userId);
 
-  socket.join(userId);
+      User.findByIdAndUpdate(userId, { isOnline: true }).catch(console.error);
 
-  User.findByIdAndUpdate(userId, {
-    isOnline: true,
-  }).catch((error) => {
-    console.error("socket online update:", error);
-  });
+      _io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    }
 
-  _io.emit("getOnlineUsers", Object.keys(userSocketMap));
-}
-
-    // Typing indicators
     socket.on("typing", ({ to, from }) => {
-      const senderId = from ? String(from) : userId;
-      const receiverId = to ? String(to) : "";
-
-      if (!senderId || !receiverId) return;
-
-      const receiverSocketId = userSocketMap[receiverId];
-
+      const receiverSocketId = userSocketMap[String(to)];
       if (receiverSocketId) {
-        _io.to(receiverSocketId).emit("typing", {
-          from: senderId,
-        });
+        _io.to(receiverSocketId).emit("typing", { from });
       }
     });
 
     socket.on("stopTyping", ({ to, from }) => {
-      const senderId = from ? String(from) : userId;
-      const receiverId = to ? String(to) : "";
-
-      if (!senderId || !receiverId) return;
-
-      const receiverSocketId = userSocketMap[receiverId];
-
+      const receiverSocketId = userSocketMap[String(to)];
       if (receiverSocketId) {
-        _io.to(receiverSocketId).emit("stopTyping", {
-          from: senderId,
-        });
+        _io.to(receiverSocketId).emit("stopTyping", { from });
       }
     });
-        // Screenshot detection relay
+
     socket.on("screenshotTaken", ({ to }) => {
-      if (!to) return;
       const receiverSocketId = userSocketMap[String(to)];
       if (receiverSocketId) {
         _io.to(receiverSocketId).emit("screenshotAlert", { from: userId });
       }
     });
 
-
     socket.on("privacyUpdated", ({ userId, privacy }) => {
-      if (!userId || !privacy) return;
-
       socket.broadcast.emit("userPrivacyUpdated", {
         userId,
         privacy,
       });
     });
-    // ProfileUpdate
-    socket.on("profileUpdated", ({ userId, fullName, bio, profilePhoto }) => {
-      if (!userId) return;
 
+    socket.on("profileUpdated", ({ userId, fullName, bio, profilePhoto }) => {
       socket.broadcast.emit("userProfileUpdated", {
         userId,
         fullName,
@@ -102,29 +78,28 @@ if (userId && userId !== "undefined") {
       });
     });
 
-    // Message read receipt
     socket.on("messageRead", ({ messageId, senderId }) => {
       const sid = getReceiverSocketId(senderId);
       if (sid) _io.to(sid).emit("messageRead", { messageId });
     });
 
-    // Message edited relay
     socket.on("messageEdited", ({ messageId, newMessage, receiverId }) => {
       const sid = getReceiverSocketId(receiverId);
       if (sid) _io.to(sid).emit("messageEdited", { messageId, newMessage });
     });
 
-    // Message deleted relay
     socket.on(
       "messageDeleted",
       ({ messageId, receiverId, deleteForEveryone }) => {
         const sid = getReceiverSocketId(receiverId);
         if (sid)
-          _io.to(sid).emit("messageDeleted", { messageId, deleteForEveryone });
-      },
+          _io.to(sid).emit("messageDeleted", {
+            messageId,
+            deleteForEveryone,
+          });
+      }
     );
 
-    // Reaction relay
     socket.on(
       "reactionAdded",
       ({ messageId, receiverId, emoji, reactorId, reactions }) => {
@@ -137,32 +112,30 @@ if (userId && userId !== "undefined") {
             ...(reactions ? { reactions } : {}),
           });
         }
-      },
+      }
     );
 
-   socket.on("disconnect", async () => {
-  if (userId && userSocketMap[userId] === socket.id) {
-    delete userSocketMap[userId];
+    socket.on("disconnect", async () => {
+      if (userId && userSocketMap[userId] === socket.id) {
+        delete userSocketMap[userId];
 
-    const lastSeen = new Date();
+        try {
+          await User.findByIdAndUpdate(userId, {
+            isOnline: false,
+            lastSeen: new Date(),
+          });
 
-    try {
-      await User.findByIdAndUpdate(userId, {
-        isOnline: false,
-        lastSeen,
-      });
+          socket.broadcast.emit("userLastSeenUpdated", {
+            userId,
+            lastSeen: new Date(),
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
 
-      socket.broadcast.emit("userLastSeenUpdated", {
-        userId,
-        lastSeen,
-      });
-    } catch (error) {
-      console.error("socket disconnect lastSeen update:", error);
-    }
-  }
-
-  _io.emit("getOnlineUsers", Object.keys(userSocketMap));
-});
+      _io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    });
   });
 
   return _io;

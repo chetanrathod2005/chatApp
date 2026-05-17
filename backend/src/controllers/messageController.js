@@ -162,12 +162,17 @@ export const getMessages = async (req, res) => {
 
     // Filter messages deleted for this user
     const messages = conversation.messages.filter(
-      (msg) =>
-        !msg.deletedFor?.some((id) => id.toString() === String(senderId)) &&
-        !msg.isDeletedForEveryone,
-    );
+  (msg) =>
+    !msg.deletedFor?.some((id) => id.toString() === String(senderId)) &&
+    !msg.isDeletedForEveryone,
+);
 
-    return res.status(200).json(messages);
+return res.status(200).json(
+  messages.map(msg => ({
+    ...msg.toObject(),
+    pinnedBy: msg.pinnedBy || []
+  }))
+);
   } catch (error) {
     console.error("getMessages:", error);
     return res.status(500).json({ message: "Internal server error" });
