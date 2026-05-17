@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Default profile">
+  <defs>
+    <linearGradient id="adminBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00a884"/>
+      <stop offset="100%" stop-color="#065f46"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="64" fill="url(#adminBg)"/>
+  <circle cx="64" cy="48" r="20" fill="#e9edef"/>
+  <path fill="#e9edef" d="M24 108c0-22 18-40 40-40s40 18 40 40v4H24v-4z"/>
+  <path fill="#b8e8dc" fill-opacity="0.9" d="M86 22h14v4l-7 14-7-14v-4z"/>
+</svg>
