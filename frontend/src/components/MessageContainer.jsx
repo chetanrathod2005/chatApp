@@ -396,37 +396,40 @@ const handlePinMessage = async (msg) => {
   };
 
   const handleDeleteChat = async () => {
-    if (!selectedUser?._id) return;
+  if (!selectedUser?._id) return;
 
-    const confirmDelete = window.confirm("Delete this chat?");
-    if (!confirmDelete) return;
+  const confirmDelete = window.confirm("Delete this chat?");
+  if (!confirmDelete) return;
 
-    try {
-      await api.delete(`/message/chat/${selectedUser._id}`, {
-        withCredentials: true,
-      });
+  try {
+    await api.delete(`/message/chat/${selectedUser._id}`, {
+      withCredentials: true,
+    });
 
-      const updatedMessages = (res.data || []).map((msg) => ({
-  ...msg,
-  isPinned: msg.pinnedBy?.includes(authUser._id),
-}));
+    dispatch(
+      setMessages({
+        userId: selectedUser._id,
+        messages: [],
+      })
+    );
 
-dispatch(
-  setMessages({
-    userId: selectedUser._id,
-    messages: updatedMessages,
-  }),
-);
-      dispatch(setSelectedUser(null));
-      dispatch(removeDeletedMessagePreview(selectedUser._id));
-      setShowMenu(false);
+    dispatch(setSelectedUser(null));
 
-      toast.success("Chat deleted");
-    } catch (error) {
-      console.error("delete chat:", error);
-      toast.error("Failed to delete chat");
-    }
-  };
+    dispatch(
+      removeDeletedMessagePreview({
+        userId: selectedUser._id,
+      })
+    );
+
+    setShowMenu(false);
+
+    toast.success("Chat deleted");
+  } catch (error) {
+    console.error("delete chat:", error);
+
+    toast.error("Failed to delete chat");
+  }
+};
 
   if (!selectedUser) {
     return (
